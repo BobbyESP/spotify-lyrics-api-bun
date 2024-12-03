@@ -4,22 +4,31 @@ import { lyricsController } from "./controllers/Lyrics";
 import { ServerMessage } from "./types/ServerMessage";
 
 const app = new Elysia()
-  .use(swagger())
+  .use(swagger({
+    documentation: {
+        info: {
+            title: 'Spotify Synced Lyrics API',
+            description: 'A simple API that retrieves the synced lyrics from the Spotify servers.',
+            version: '1.0.0'
+        },
+        tags: [
+          { name : "Lyrics", description: "The lyrics fetching endpoints" },
+        ]
+    }
+}))
   .get("/", () => {
-    const response: ServerMessage = {
+    return {
         error: false,
         message: "This is the root of the API, no content here. " + 
         "Try other endpoints explained in the documentation or check the Swagger page at " +
         app.server?.hostname + ((app.server?.port ? `:${app.server?.port}` : "") + "/swagger"),
     };
-    return response;
   })
-  .onError(({ code, error }) => {
-    const response: ServerMessage = {
-        error: true,
-        message: error.message,
-    };
-    return response; 
+  .onError((context) => {
+    return {
+      error: true,
+      message: context.error.message,
+  }; 
   })
   .use(lyricsController)
   .listen(process.env.PORT ?? 3000);
