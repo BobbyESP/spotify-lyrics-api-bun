@@ -1,6 +1,6 @@
 import { Elysia } from "elysia";
 import { swagger } from '@elysiajs/swagger'
-import { lyricsController } from "./controllers/Lyrics";
+import { lyricsController } from "./controllers/LyricsController";
 import { ServerMessage } from "./types/ServerMessage";
 
 const app = new Elysia()
@@ -9,10 +9,11 @@ const app = new Elysia()
         info: {
             title: 'Spotify Synced Lyrics API',
             description: 'A simple API that retrieves the synced lyrics from the Spotify servers.',
-            version: '1.0.0'
+            version: "1.0.0",
         },
         tags: [
-          { name : "Lyrics", description: "The lyrics fetching endpoints" },
+          { name: "General", description: "General endpoints" },
+          { name : "Lyrics", description: "The lyrics fetching endpoints" }
         ]
     }
 }))
@@ -23,6 +24,10 @@ const app = new Elysia()
         "Try other endpoints explained in the documentation or check the Swagger page at " +
         app.server?.hostname + ((app.server?.port ? `:${app.server?.port}` : "") + "/swagger"),
     };
+  }, {
+    detail: {
+        tags: ["General"]
+    }
   })
   .onError((context) => {
     return {

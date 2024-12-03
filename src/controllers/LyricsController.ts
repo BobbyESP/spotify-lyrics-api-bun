@@ -9,10 +9,10 @@ export const lyricsController = new Elysia()
       .get(
         "/:spotifyUrl",
         async (context) => {
-          const { spotifyUrl } = context.params; // this url comes utf-8 encoded
+          const { spotifyUrl } = context.params;
           const trackId = getSpotifyTrackId(spotifyUrl);
           if (trackId) {
-            return await context.spotifyService.fetchLyrics(trackId);
+            return await context.spotifyService.getSyncedLyrics(trackId);
           }
 
           throw new Error(
@@ -27,6 +27,7 @@ export const lyricsController = new Elysia()
             }),
           }),
           detail: {
+            name: "Get Lyrics",
             tags: ["Lyrics"]
           }
         }
@@ -36,12 +37,13 @@ export const lyricsController = new Elysia()
         async (context) => {
           const trackId = getSpotifyTrackId(context.query.spotifyUrl);
           if (trackId) {
-            return await context.spotifyService.fetchLyrics(trackId);
+            return await context.spotifyService.getSyncedLyrics(trackId);
           }
 
           throw new Error(
             "A valid URL is required. Please, check it and try again."
           );
+
         },
         {
           query: t.Object({
@@ -51,6 +53,7 @@ export const lyricsController = new Elysia()
             }),
           }),
           detail: {
+            name: "Get Lyrics (as query)",
             tags: ["Lyrics"]
           }
         }

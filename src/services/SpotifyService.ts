@@ -1,6 +1,10 @@
 import { Token } from "@models/Token";
 import { SpLyricsResponse } from "@models/spotify/lyrics/SpLyricsResponse";
 import { unlinkSync } from "node:fs";
+import { ApiGlobalConfiguration } from "@/Config";
+import { toSyncedLyrics } from "@/libs/LyricsUtils";
+import { SyncedLyrics } from "@/models/SyncedLyrics";
+import { SpLyricsLine } from "@/models/spotify/lyrics/SpLyricsLine";
 
 const cacheFilePath = "./tmp/spotify_token.json";
 
@@ -15,48 +19,40 @@ export class SpotifyService {
     }
   }
 
-  // Obtener el token de acceso desde el servidor de Spotify
   private async fetchToken(): Promise<Token> {
     if (!this.spDc) throw new Error("SP_DC is required.");
 
-    try {
-      const response = await fetch(
-        "https://open.spotify.com/get_access_token?reason=transport&productType=web_player",
-        {
-          headers: {
-            "User-Agent": "Mozilla/5.0",
-            "App-platform": "WebPlayer",
-            "Content-Type": "text/html; charset=utf-8",
-            Cookie: `sp_dc=${this.spDc}`,
-          },
-        }
-      );
-
-      if (!response.ok) {
-        throw new Error(`Failed to fetch token: ${response.statusText}`);
-      } else {
-        console.debug("The token has been successfully retrieved.");
+    const response = await fetch(
+      "https://open.spotify.com/get_access_token?reason=transport&productType=web_player",
+      {
+        headers: {
+          "User-Agent": ApiGlobalConfiguration.userAgent,
+          "App-platform": ApiGlobalConfiguration.appPlatofrm,
+          "Content-Type": "text/html; charset=utf-8",
+          Cookie: `sp_dc=${this.spDc}`,
+        },
       }
+    );
 
-      const data = await response.json();
-      if (!data.accessToken) throw new Error("Invalid SP_DC value.");
-
-      const token: Token = {
-        accessToken: data.accessToken,
-        accessTokenExpirationTimestampMs: data.accessTokenExpirationTimestampMs,
-      };
-
-      try {
-        await Bun.write(cacheFilePath, JSON.stringify(token));
-      } catch (writeError) {
-        console.error("Failed to write token to cache file.", writeError);
-      }
-
-      return token;
-    } catch (error) {
-      console.error("Failed to fetch token.", error);
-      throw error;
+    if (!response.ok) {
+      throw new Error(`Failed to fetch token: ${response.statusText}`);
     }
+
+    const data = await response.json();
+    if (!data.accessToken) throw new Error("Invalid SP_DC value.");
+
+    const token: Token = {
+      accessToken: data.accessToken,
+      accessTokenExpirationTimestampMs: data.accessTokenExpirationTimestampMs,
+    };
+
+    try {
+      await Bun.write(cacheFilePath, JSON.stringify(token));
+    } catch (error) {
+      console.warn("Failed to write token to cache file:", error);
+    }
+
+    return token;
   }
 
   private async ensureToken(): Promise<string> {
@@ -75,8 +71,9 @@ export class SpotifyService {
       const cachedFile = Bun.file(cacheFilePath);
       if (await cachedFile.exists()) {
         const cachedToken: Token = JSON.parse(await cachedFile.text());
-        if (Date.now() < cachedToken.accessTokenExpirationTimestampMs) { //If the token hasnt expired...
-          this.token = cachedToken;
+        if (Date.now() < cachedToken.accessTokenExpirationTimestampMs) {
+          //If the token hasnt expired...
+          this.token = cachedToken; // Set the token to the cached token
           return this.token.accessToken;
         }
       }
@@ -92,23 +89,38 @@ export class SpotifyService {
     return newToken.accessToken;
   }
 
-  public async fetchLyrics(trackId: string): Promise<SpLyricsResponse> {
+  private async fetchLyrics(trackId: string): Promise<SpLyricsResponse> {
     const token = await this.ensureToken();
 
     const response = await fetch(
       `https://spclient.wg.spotify.com/color-lyrics/v2/track/${trackId}?format=json&market=from_token`,
       {
         headers: {
-          "User-Agent":
-            "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/101.0.0.0 Safari/537.36",
-          "App-platform": "WebPlayer",
+          "User-Agent": ApiGlobalConfiguration.userAgent,
+          "App-platform": ApiGlobalConfiguration.appPlatofrm,
           Authorization: `Bearer ${token}`,
         },
       }
     );
 
     if (!response.ok)
-      throw new Error(`Failed to fetch lyrics for track ${trackId}. ${response.statusText}.`);
+      throw new Error(
+        `Failed to fetch lyrics for track ${trackId}. ${response.statusText}.`
+      );
     return await response.json();
+  }
+
+  public async getSyncedLyrics(trackId: string): Promise<SyncedLyrics> {
+    const spotifyLyrics = await this.fetchLyrics(trackId);
+
+    return toSyncedLyrics(spotifyLyrics)
+  }
+
+  public async getLyrics(trackId: string): Promise<SpLyricsLine[]> {
+    return (await this.fetchLyrics(trackId)).lyrics.lines;
+  }
+
+  public async getLyricsResponse(trackId: string): Promise<SpLyricsResponse> {
+    return await this.fetchLyrics(trackId);
   }
 }
