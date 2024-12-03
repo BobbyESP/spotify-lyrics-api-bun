@@ -3,8 +3,8 @@
   "version": "1.0.0",
   "scripts": {
     "dev": "bun --watch src/index.ts",
-    "build": "bun build src/index.ts --target bun --outdir ./public --minify-whitespace --minify-syntax",
-    "start": "NODE_ENV=production bun public/index.js",
+    "build": "bun build src/index.ts --target bun --outdir ./dist --minify-whitespace --minify-syntax",
+    "start": "NODE_ENV=production bun dist/index.js",
     "test": "bun test"
   },
   "dependencies": {
