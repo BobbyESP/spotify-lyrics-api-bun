@@ -3,8 +3,10 @@ import { swagger } from "@elysiajs/swagger";
 import { lyricsController } from "./controllers/LyricsController";
 import { node } from "@elysiajs/node";
 import { ServerMessage } from "./types/ServerMessage";
+import { opentelemetry } from "@elysiajs/opentelemetry";
 
 const app = new Elysia({ adapter: node() })
+.use(opentelemetry())
   .use(
     swagger({
       documentation: {
@@ -42,7 +44,7 @@ const app = new Elysia({ adapter: node() })
   .onError((context) => {
     return {
       error: true,
-      message: context.error.message,
+      message: context.error,
     };
   })
   .use(lyricsController)

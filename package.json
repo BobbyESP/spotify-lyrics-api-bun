@@ -9,7 +9,8 @@
     "test": "bun test"
   },
   "dependencies": {
-    "@elysiajs/node": "^1.2.3",
+    "@elysiajs/node": "^1.2.4",
+    "@elysiajs/opentelemetry": "^1.2.0",
     "@elysiajs/swagger": "^1.1.6",
     "elysia": "latest"
   },
