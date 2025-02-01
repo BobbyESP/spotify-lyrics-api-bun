@@ -2,16 +2,17 @@
   "name": "spotify-lyrics-api-bun",
   "version": "1.0.0",
   "scripts": {
-    "dev": "bun --watch src/index.ts",
-    "build:js": "bun build src/index.ts --target node --outdir ./dist --minify-whitespace --minify-syntax",
-    "build:executable": "bun build src/index.ts --compile --target bun --outfile ./dist/server --minify-whitespace --minify-syntax",
-    "start": "NODE_ENV=production node dist/index.js",
-    "test": "bun test"
-  },
+    "dev": "tsx watch src/index.ts",
+    "build": "tsc src/index.ts --outDir dist",
+    "start": "NODE_ENV=production node dist/index.js"
+   },
   "dependencies": {
     "@elysiajs/node": "^1.2.4",
     "@elysiajs/swagger": "^1.1.6",
-    "elysia": "latest"
+    "@types/node": "^22.13.0",
+    "elysia": "^1.2.10",
+    "tsx": "^4.19.2",
+    "typescript": "^5.7.3"
   },
   "devDependencies": {
     "bun-types": "latest"

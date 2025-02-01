@@ -1,6 +1,6 @@
 import { Token } from "@models/Token";
 import { SpLyricsResponse } from "@models/spotify/lyrics/SpLyricsResponse";
-import { unlinkSync } from "node:fs";
+import { unlinkSync, existsSync, readFileSync, writeFileSync } from "fs";
 import { ApiGlobalConfiguration } from "@/Config";
 import { toSyncedLyrics } from "@/libs/LyricsUtils";
 import { SyncedLyrics } from "@/models/SyncedLyrics";
@@ -22,37 +22,49 @@ export class SpotifyService {
   private async fetchToken(): Promise<Token> {
     if (!this.spDc) throw new Error("SP_DC is required.");
 
-    const response = await fetch(
-      "https://open.spotify.com/get_access_token?reason=transport&productType=web_player",
-      {
-        headers: {
-          "User-Agent": ApiGlobalConfiguration.userAgent,
-          "App-platform": ApiGlobalConfiguration.appPlatofrm,
-          "Content-Type": "text/html; charset=utf-8",
-          Cookie: `sp_dc=${this.spDc}`,
-        },
-      }
-    );
-
-    if (!response.ok) {
-      throw new Error(`Failed to fetch token: ${response.statusText}`);
-    }
-
-    const data = await response.json();
-    if (!data.accessToken) throw new Error("Invalid SP_DC value.");
-
-    const token: Token = {
-      accessToken: data.accessToken,
-      accessTokenExpirationTimestampMs: data.accessTokenExpirationTimestampMs,
-    };
+    console.debug("Fetching new Spotify access token...");
 
     try {
-      await Bun.write(cacheFilePath, JSON.stringify(token));
-    } catch (error) {
-      console.warn("Failed to write token to cache file:", error);
-    }
+      const response = await fetch(
+        "https://open.spotify.com/get_access_token?reason=transport&productType=web_player",
+        {
+          method: "GET",
+          headers: {
+            "User-Agent": ApiGlobalConfiguration.userAgent,
+            "App-Platform": ApiGlobalConfiguration.appPlatform,
+            "Content-Type": "text/html; charset=utf-8",
+            Cookie: this.spDc,
+          },
+        }
+      );
 
-    return token;
+      if (!response.ok) {
+        throw new Error(
+          `Failed to fetch token: ${response.status} ${response.statusText}`
+        );
+      }
+
+      const data = await response.json();
+      if (!data.accessToken) throw new Error("Invalid SP_DC value or missing token.");
+
+      const token: Token = {
+        accessToken: data.accessToken,
+        accessTokenExpirationTimestampMs: data.accessTokenExpirationTimestampMs,
+      };
+
+      // Write to cache
+      try {
+        writeFileSync(cacheFilePath, JSON.stringify(token));
+      } catch (error) {
+        console.warn("Failed to write token to cache file:", error);
+      }
+
+      console.debug("Successfully fetched new Spotify token.");
+      return token;
+    } catch (error) {
+      console.error("Error fetching Spotify token:", error);
+      throw error;
+    }
   }
 
   private async ensureToken(): Promise<string> {
@@ -64,23 +76,21 @@ export class SpotifyService {
     }
 
     console.debug(
-      "The token is expired didnt exist or it has expired, fetching new token."
+      "The token is expired or didn't exist, fetching a new token."
     );
 
     try {
-      const cachedFile = Bun.file(cacheFilePath);
-      if (await cachedFile.exists()) {
-        const cachedToken: Token = JSON.parse(await cachedFile.text());
+      if (existsSync(cacheFilePath)) {
+        const cachedToken: Token = JSON.parse(readFileSync(cacheFilePath, "utf8"));
         if (Date.now() < cachedToken.accessTokenExpirationTimestampMs) {
-          //If the token hasnt expired...
-          this.token = cachedToken; // Set the token to the cached token
+          this.token = cachedToken;
           return this.token.accessToken;
         }
       }
     } catch (error) {
       console.error("Failed to parse cached token or token is expired.", error);
       console.debug("Deleting old token file.");
-      await unlinkSync(cacheFilePath);
+      unlinkSync(cacheFilePath);
     }
 
     console.log("Fetching new token.");
@@ -92,18 +102,23 @@ export class SpotifyService {
   private async fetchLyrics(trackId: string): Promise<SpLyricsResponse> {
     const token = await this.ensureToken();
 
+    console.log("Token:", token);
+
     const response = await fetch(
       `https://spclient.wg.spotify.com/color-lyrics/v2/track/${trackId}?format=json&market=from_token`,
       {
         headers: {
           "User-Agent": ApiGlobalConfiguration.userAgent,
-          "App-platform": ApiGlobalConfiguration.appPlatofrm,
+          "App-platform": ApiGlobalConfiguration.appPlatform,
+          "Content-Type": "application/json",
           Authorization: `Bearer ${token}`,
         },
       }
     );
 
-    if (!response.ok)
+    console.debug("Lyrics response status:", response.status);
+
+    if (!response.ok || response.status !== 200)
       throw new Error(
         `Failed to fetch lyrics for track ${trackId}. ${response.statusText}.`
       );
@@ -112,8 +127,7 @@ export class SpotifyService {
 
   public async getSyncedLyrics(trackId: string): Promise<SyncedLyrics> {
     const spotifyLyrics = await this.fetchLyrics(trackId);
-
-    return toSyncedLyrics(spotifyLyrics)
+    return toSyncedLyrics(spotifyLyrics);
   }
 
   public async getLyrics(trackId: string): Promise<SpLyricsLine[]> {

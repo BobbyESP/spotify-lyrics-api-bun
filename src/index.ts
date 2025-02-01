@@ -49,8 +49,8 @@ const app = new Elysia({ adapter: node() })
   .onAfterResponse(() => {
     console.log("Response", performance.now());
   })
-  .listen(process.env.PORT ?? 3000);
-
-console.log(
-  `🦊 Elysia is running at ${app.server?.hostname}:${app.server?.port}`
-);
+  .listen(process.env.PORT ?? 3000, ({ hostname, port }) => {
+		console.log(
+			`🦊 Elysia is running at ${hostname}:${port}`
+		)
+	});
