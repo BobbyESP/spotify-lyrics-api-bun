@@ -47,7 +47,7 @@ const app = new Elysia({ adapter: node() })
   })
   .use(lyricsController)
   .onAfterResponse(() => {
-    console.log("Response", performance.now());
+    
   })
   .listen(process.env.PORT ?? 3000, ({ hostname, port }) => {
 		console.log(
