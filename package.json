@@ -5,17 +5,16 @@
     "dev": "bun --watch src/index.ts",
     "build:js": "bun build src/index.ts --target node --outdir ./dist --minify-whitespace --minify-syntax",
     "build:executable": "bun build src/index.ts --compile --target bun --outfile ./dist/server --minify-whitespace --minify-syntax",
-    "start": "NODE_ENV=production bun dist/index.js",
+    "start": "NODE_ENV=production node dist/index.js",
     "test": "bun test"
   },
   "dependencies": {
     "@elysiajs/node": "^1.2.4",
-    "@elysiajs/opentelemetry": "^1.2.0",
     "@elysiajs/swagger": "^1.1.6",
     "elysia": "latest"
   },
   "devDependencies": {
     "bun-types": "latest"
   },
-  "module": "src/index.js"
+  "module": "src/index.ts"
 }
