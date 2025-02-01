@@ -1,6 +1,7 @@
 {
   "name": "spotify-lyrics-api-bun",
   "version": "1.0.0",
+  "type": "module",
   "scripts": {
     "dev": "tsx watch src/index.ts",
     "build": "tsc src/index.ts --outDir dist",

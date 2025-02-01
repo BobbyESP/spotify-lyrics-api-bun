@@ -1,8 +1,8 @@
 import { Elysia } from "elysia";
 import { swagger } from "@elysiajs/swagger";
-import { lyricsController } from "./controllers/LyricsController";
+import { lyricsController } from "@controllers/LyricsController";
 import { node } from "@elysiajs/node";
-import { ServerMessage } from "./types/ServerMessage";
+import { ServerMessage } from "@/types/ServerMessage";
 
 const app = new Elysia({ adapter: node() })
   .use(
@@ -53,4 +53,5 @@ const app = new Elysia({ adapter: node() })
 		console.log(
 			`🦊 Elysia is running at ${hostname}:${port}`
 		)
-	});
+	})
+  .compile();
