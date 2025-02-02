@@ -13,7 +13,7 @@ await Promise.all([
     build({
         outDir: 'dist',
         format: 'esm',
-        target: 'node18',
+        target: 'esnext',
         cjsInterop: false,
         //outExtension: ({ format }) => ({ js: '.mjs' }),
         ...tsupConfig
