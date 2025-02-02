@@ -98,6 +98,8 @@ export class SpotifyService {
       unlinkSync(cacheFilePath);
     }
 
+    console.log("Fetching a new token...");
+    
     const newToken = await this.fetchToken();
     this.token = newToken;
     return newToken.accessToken;
