@@ -5,18 +5,19 @@ const tsupConfig: Options = {
     splitting: false,
     sourcemap: false,
     clean: true,
-    bundle: true
+    bundle: true,
 } satisfies Options
 
 await Promise.all([
-    // ? tsup cjs
+    // ? tsup esm
     build({
         outDir: 'dist',
-        format: 'cjs',
+        format: 'esm',
         target: 'node18',
-        // dts: true,
+        cjsInterop: false,
+        outExtension: ({ format }) => ({ js: '.mjs' }),
         ...tsupConfig
-    })
+    }),
 ])
 
 process.exit()

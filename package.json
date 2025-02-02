@@ -5,20 +5,21 @@
   "scripts": {
     "dev": "tsx watch src/index.ts",
     "build": "tsx build.ts",
-    "start": "NODE_ENV=production node dist/index.cjs"
-   },
+    "start": "cross-env NODE_ENV=production node dist/index.mjs"
+  },
   "dependencies": {
-
+    "ws": "^8.18.0"
   },
   "devDependencies": {
-    "bun-types": "latest",
     "@elysiajs/node": "^1.2.4",
-    "@types/node": "^22.13.0",
     "@elysiajs/swagger": "^1.2.0",
+    "@types/node": "^22.13.0",
+    "@types/ws": "^8.5.14",
+    "bun-types": "latest",
+    "cross-env": "^7.0.3",
     "elysia": "^1.2.11",
     "tsup": "^8.3.5",
     "tsx": "^4.19.2",
     "typescript": "^5.7.3"
-  },
-  "main": "./dist/index.cjs"
+  }
 }
