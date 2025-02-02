@@ -15,7 +15,7 @@ await Promise.all([
         format: 'esm',
         target: 'node18',
         cjsInterop: false,
-        outExtension: ({ format }) => ({ js: '.mjs' }),
+        //outExtension: ({ format }) => ({ js: '.mjs' }),
         ...tsupConfig
     }),
 ])
