@@ -4,8 +4,8 @@
   "type": "module",
   "scripts": {
     "dev": "tsx watch src/index.ts",
-    "build": "tsc src/index.ts --outDir dist",
-    "start": "NODE_ENV=production node dist/index.js"
+    "build": "tsx build.ts",
+    "start": "NODE_ENV=production node dist/index.cjs"
    },
   "dependencies": {
 
