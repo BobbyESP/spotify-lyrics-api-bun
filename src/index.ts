@@ -1,7 +1,7 @@
 import { Elysia } from "elysia";
 import { swagger } from "@elysiajs/swagger";
 import { lyricsController } from "@controllers/LyricsController";
-import { node } from "@elysiajs/node";
+import { ElysiaNodeContext, node } from "@elysiajs/node";
 import { ServerMessage } from "@/types/ServerMessage";
 
 const app = new Elysia({ adapter: node() })
@@ -39,10 +39,10 @@ const app = new Elysia({ adapter: node() })
       },
     }
   )
-  .onError((context) => {
+  .onError(({ error }) => {
     return {
       error: true,
-      message: context.error,
+      message: (error as Error).message,
     };
   })
   .use(lyricsController)
