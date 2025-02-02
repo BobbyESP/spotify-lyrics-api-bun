@@ -1,7 +1,7 @@
 import { Elysia } from "elysia";
 import { swagger } from "@elysiajs/swagger";
 import { lyricsController } from "@controllers/LyricsController";
-import { ElysiaNodeContext, node } from "@elysiajs/node";
+import { node } from "@elysiajs/node";
 
 const app = new Elysia({ adapter: node() })
   .use(

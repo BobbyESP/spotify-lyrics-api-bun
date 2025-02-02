@@ -20,25 +20,5 @@
     "tsx": "^4.19.2",
     "typescript": "^5.7.3"
   },
-  "main": "./dist/cjs/index.js",
-	"module": "./dist/index.mjs",
-	"types": "./dist/index.d.ts",
-	"exports": {
-		"./package.json": "./package.json",
-		".": {
-			"types": "./dist/index.d.ts",
-			"import": "./dist/index.mjs",
-			"require": "./dist/cjs/index.js"
-		},
-		"./handler": {
-			"types": "./dist/handler.d.ts",
-			"import": "./dist/handler.mjs",
-			"require": "./dist/cjs/handler.js"
-		},
-		"./ws": {
-			"types": "./dist/ws.d.ts",
-			"import": "./dist/ws.mjs",
-			"require": "./dist/cjs/ws.js"
-		}
-	}
+  "main": "./dist/index.cjs"
 }
