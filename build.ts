@@ -11,7 +11,7 @@ const tsupConfig: Options = {
 await Promise.all([
     // ? tsup esm
     build({
-        outDir: 'api',
+        outDir: 'dist',
         format: 'esm',
         target: 'esnext',
         cjsInterop: false,
