@@ -1,12 +1,6 @@
 import { Token } from "@models/Token";
 import { SpLyricsResponse } from "@models/spotify/lyrics/SpLyricsResponse";
-import {
-  unlinkSync,
-  existsSync,
-  readFileSync,
-  writeFileSync,
-  mkdirSync,
-} from "fs";
+import { mkdir, rm, access } from "fs/promises";
 import { ApiGlobalConfiguration } from "@/Config";
 import { toSyncedLyrics } from "@/libs/LyricsUtils";
 import { SyncedLyrics } from "@/models/SyncedLyrics";
@@ -26,8 +20,11 @@ export class SpotifyService {
   }
 
   private async ensureTempDir() {
-    if (!existsSync("./tmp")) {
-      await mkdirSync("./tmp");
+    // Usar fs/promises para crear directorio si no existe
+    try {
+      await access("./tmp");
+    } catch (e) {
+      await mkdir("./tmp");
     }
   }
 
@@ -61,10 +58,10 @@ export class SpotifyService {
       accessTokenExpirationTimestampMs: data.accessTokenExpirationTimestampMs,
     };
 
-    // Write to cache
+    // Escribir en caché usando Bun
     try {
       await this.ensureTempDir();
-      writeFileSync(cacheFilePath, JSON.stringify(token));
+      await Bun.write(cacheFilePath, JSON.stringify(token));
     } catch (error) {
       console.warn("Failed to write token to cache file:", error);
     }
@@ -84,10 +81,10 @@ export class SpotifyService {
     );
 
     try {
-      if (existsSync(cacheFilePath)) {
-        const cachedToken: Token = JSON.parse(
-          readFileSync(cacheFilePath, "utf8")
-        );
+      // Bun: leer archivo si existe
+      if (await Bun.file(cacheFilePath).exists()) {
+        const cachedTokenRaw = await Bun.file(cacheFilePath).text();
+        const cachedToken: Token = JSON.parse(cachedTokenRaw);
         if (Date.now() < cachedToken.accessTokenExpirationTimestampMs) {
           this.token = cachedToken;
           return this.token.accessToken;
@@ -95,7 +92,7 @@ export class SpotifyService {
       }
     } catch (error) {
       console.error("Failed to parse cached token or token is expired.", error);
-      unlinkSync(cacheFilePath);
+      await rm(cacheFilePath, { force: true });
     }
 
     console.log("Fetching a new token...");

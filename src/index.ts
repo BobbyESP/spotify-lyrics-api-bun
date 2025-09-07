@@ -1,11 +1,10 @@
 import { Elysia } from "elysia";
-import { swagger } from "@elysiajs/swagger";
+import { openapi } from "@elysiajs/openapi";
 import { lyricsController } from "@controllers/LyricsController";
-import { node } from "@elysiajs/node";
 
-const app = new Elysia({ adapter: node() })
+const app = new Elysia()
   .use(
-    swagger({
+    openapi({
       documentation: {
         info: {
           title: "Spotify Synced Lyrics API",
@@ -27,9 +26,9 @@ const app = new Elysia({ adapter: node() })
         error: false,
         message:
           "This is the root of the API, no content here. " +
-          "Try other endpoints explained in the documentation or check the Swagger page at " +
+          "Try other endpoints explained in the documentation or check the OpenAPI page at " +
           app.server?.hostname +
-          ((app.server?.port ? `:${app.server?.port}` : "") + "/swagger"),
+          ((app.server?.port ? `:${app.server?.port}` : "") + "/openapi"),
       };
     },
     {
