@@ -1,9 +1,10 @@
 import { Elysia, t } from "elysia";
-import { SpotifyService } from "@services/SpotifyService";
+import { SpotifyService } from "@/services/spotify.service";
 import { getSpotifyTrackId } from "@/libs/spotify/SpotifyURLs";
+import { SpotifyTOTPService } from "@/services/spotify-totp.service";
 
 export const lyricsController = new Elysia()
-  .decorate("spotifyService", new SpotifyService(undefined))
+  .decorate("spotifyService", new SpotifyTOTPService())
   .group("/lyrics", (app) =>
     app
       .get(
